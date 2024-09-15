@@ -12,6 +12,9 @@
 
 def loongarch_xvpermi: SDNode<"LoongArchISD::XVPERMI", SDT_loongArchV1RUimm>;
 
+def SDT_loongArchXVFRECIPE_S : SDTypeProfile<1, 1, [SDTCisVT<0, v8f32>, SDTCisVT<1, v8f32>]>;
+def SDT_loongArchXVFRECIPE_D : SDTypeProfile<1, 1, [SDTCisVT<0, v4f64>, SDTCisVT<1, v4f64>]>;
+
 def lasxsplati8
   : PatFrag<(ops node:$e0),
             (v32i8 (build_vector node:$e0, node:$e0, node:$e0, node:$e0,
@@ -42,6 +45,11 @@ def lasxsplatf32
 def lasxsplatf64
   : PatFrag<(ops node:$e0),
             (v4f64 (build_vector node:$e0, node:$e0, node:$e0, node:$e0))>;
+
+def loongarch_xvfrecipe_s: SDNode<"LoongArchISD::XVFRECIPE_S", SDT_loongArchXVFRECIPE_S>;
+def loongarch_xvfrecipe_d: SDNode<"LoongArchISD::XVFRECIPE_D", SDT_loongArchXVFRECIPE_D>;
+def loongarch_xvfrsqrte_s: SDNode<"LoongArchISD::XVFRSQRTE_S", SDT_loongArchXVFRECIPE_S>;
+def loongarch_xvfrsqrte_d: SDNode<"LoongArchISD::XVFRSQRTE_D", SDT_loongArchXVFRECIPE_D>;
 
 //===----------------------------------------------------------------------===//
 // Instruction class templates
@@ -2088,6 +2096,15 @@ foreach Inst = ["XVFRECIPE_S", "XVFRSQRTE_S"] in
 foreach Inst = ["XVFRECIPE_D", "XVFRSQRTE_D"] in
   def : Pat<(deriveLASXIntrinsic<Inst>.ret (v4f64 LASX256:$xj)),
             (!cast<LAInst>(Inst) LASX256:$xj)>;
+
+def : Pat<(loongarch_xvfrecipe_s v8f32:$src), 
+          (XVFRECIPE_S v8f32:$src)>;
+def : Pat<(loongarch_xvfrecipe_d v4f64:$src), 
+          (XVFRECIPE_D v4f64:$src)>;
+def : Pat<(loongarch_xvfrsqrte_s v8f32:$src), 
+          (XVFRSQRTE_S v8f32:$src)>;
+def : Pat<(loongarch_xvfrsqrte_d v4f64:$src), 
+          (XVFRSQRTE_D v4f64:$src)>;
 }
 
 def : Pat<(int_loongarch_lasx_xvpickve_w_f v8f32:$xj, timm:$imm),
